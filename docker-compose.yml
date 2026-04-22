@@ -1,0 +1,16 @@
+services:
+  inventory:
+    build: ./inventory-service
+    ports:
+      - "8002:8002"
+    environment:
+      - GRID_SIZE=${GRID_SIZE:-5}
+    networks:
+      - alro-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 5s
+      retries: 3
+
+networks:
+  alro-net:
