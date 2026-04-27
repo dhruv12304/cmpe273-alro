@@ -12,5 +12,34 @@ services:
       interval: 5s
       retries: 3
 
+  agent:
+    build:
+      context: .
+      dockerfile: agent-service/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GRID_SIZE=${GRID_SIZE:-5}
+      - INVENTORY_SERVICE_URL=http://inventory:8002
+      - TRAINING_EPISODES=${TRAINING_EPISODES:-500}
+      - EPSILON_DECAY=${EPSILON_DECAY:-0.995}
+      - QTABLE_PATH=/data/qtable.npy
+    volumes:
+      - qtable-data:/data
+    depends_on:
+      inventory:
+        condition: service_healthy
+    networks:
+      - alro-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 5s
+      retries: 3
+
+volumes:
+  qtable-data:
+
 networks:
   alro-net:
+    driver: bridge
