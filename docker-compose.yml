@@ -37,6 +37,39 @@ services:
       interval: 5s
       retries: 3
 
+  erp-stub:
+    build: ./erp-stub
+    ports:
+      - "8003:8003"
+    environment:
+      - GRID_SIZE=${GRID_SIZE:-5}
+      - AGENT_SERVICE_URL=http://agent:8001
+    depends_on:
+      agent:
+        condition: service_healthy
+    networks:
+      - alro-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 5s
+      retries: 3
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - GRID_SIZE=${GRID_SIZE:-5}
+      - AGENT_SERVICE_URL=http://agent:8001
+      - INVENTORY_SERVICE_URL=http://inventory:8002
+      - ERP_STUB_URL=http://erp-stub:8003
+    depends_on:
+      - agent
+      - inventory
+      - erp-stub
+    networks:
+      - alro-net
+
 volumes:
   qtable-data:
 
